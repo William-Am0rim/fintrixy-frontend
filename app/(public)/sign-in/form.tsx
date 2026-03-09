@@ -7,6 +7,7 @@ import { FormWrapper } from "@/components/FormWrapper";
 import { FormInput } from "@/components/FormInput";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { signIn } from "next-auth/react";
 
 export const SignInForm = () => {
   const methods = useForm<TypeSchemas>();
@@ -69,6 +70,7 @@ export const SignInForm = () => {
         <Button
           className="btn-secondary flex items-center justify-center gap-2 w-full cursor-pointer"
           variant="outline"
+          onClick={() => signIn("google")}
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path

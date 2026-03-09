@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, Lock, ArrowRight, User } from "lucide-react";
 import { TypeSchemas } from "./validate";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 export const SignUpForm = () => {
   const methods = useForm<TypeSchemas>();
@@ -76,6 +77,7 @@ export const SignUpForm = () => {
         <Button
           className="btn-secondary flex items-center justify-center gap-2 w-full cursor-pointer"
           variant="outline"
+          onClick={() => signIn("google")}
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
