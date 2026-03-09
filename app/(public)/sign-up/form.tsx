@@ -1,23 +1,30 @@
-"use client"
+"use client";
 
-import { useForm } from "react-hook-form";
-import { TypeSchemas } from "./validate";
-import { Mail, Lock, ArrowRight } from "lucide-react";
 import { FormWrapper } from "@/components/FormWrapper";
+import { useForm } from "react-hook-form";
 import { FormInput } from "@/components/FormInput";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Mail, Lock, ArrowRight, User } from "lucide-react";
+import { TypeSchemas } from "./validate";
+import Link from "next/link";
 
-export const SignInForm = () => {
+export const SignUpForm = () => {
   const methods = useForm<TypeSchemas>();
 
-  const onSubmit = (data: TypeSchemas) => {
+  const onSubmit = (data: TypeSchemas ) => {
     console.log(data);
   };
-
   return (
     <FormWrapper methods={methods}>
       <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+        <FormInput
+          name="name"
+          label="Nome completo"
+          type="text"
+          placeholder="Seu nome"
+          icon={<User className="w-5 h-5" />}
+          register={methods.register}
+        />
         <FormInput
           name="email"
           label="Email"
@@ -49,9 +56,9 @@ export const SignInForm = () => {
           Entrar <ArrowRight />
         </Button>
         <p>
-          Ainda não tem conta?{" "}
-          <Link href="/auth/signup" className="text-blue-600">
-            Criar conta
+          Já possui uma conta?{" "}
+          <Link href="/auth/signin" className="text-blue-600">
+            Fazer login
           </Link>
         </p>
 
@@ -61,7 +68,7 @@ export const SignInForm = () => {
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-4 text-muted-foreground">
-              ou continue com
+              ou cadastre-se com
             </span>
           </div>
         </div>
@@ -99,4 +106,3 @@ export const SignInForm = () => {
     </FormWrapper>
   );
 };
-

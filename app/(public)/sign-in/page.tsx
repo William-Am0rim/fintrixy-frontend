@@ -1,5 +1,5 @@
 import { HeroLeftPanel } from "@/components/HeroLeftPanel";
-import SignInForm from "./form";
+import { SignInForm } from "./form";
 
 const SignInPage = () => {
     return (
