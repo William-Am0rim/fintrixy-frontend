@@ -70,7 +70,7 @@ export const SignInForm = () => {
         <Button
           className="btn-secondary flex items-center justify-center gap-2 w-full cursor-pointer"
           variant="outline"
-          onClick={() => signIn("google")}
+          onClick={() => signIn("google", {callbackUrl: "/dashboard"})}
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path

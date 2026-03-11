@@ -1,11 +1,18 @@
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SideBarMenu } from "@/components/SideBarMenu";
+
 export default async function PrivateLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
+    <SidebarProvider>
+      <SideBarMenu />
+      <div>
+        <SidebarTrigger />
+        {children}
+      </div>
+    </SidebarProvider>
   );
 }
