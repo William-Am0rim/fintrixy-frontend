@@ -9,8 +9,10 @@ export default async function PrivateLayout({
   return (
     <SidebarProvider>
       <SideBarMenu />
-      <div>
-        <SidebarTrigger />
+      <div className="w-full">
+        <div className="flex justify-end p-4 md:justify-start md:px-0">
+          <SidebarTrigger className=""/>
+        </div>
         {children}
       </div>
     </SidebarProvider>

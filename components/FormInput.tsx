@@ -10,7 +10,7 @@ type FormInputProps<T extends FieldValues> = {
   name: Path<T>;
   label: string;
   type: string;
-  placeholder: string;
+  placeholder?: string;
   register: UseFormRegister<T>;
   icon?: React.ReactNode;
   isPassword?: boolean;

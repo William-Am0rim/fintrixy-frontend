@@ -34,7 +34,7 @@ export const SideBarMenu = () => {
     { title: "Carteiras", href: "/wallets", icon: Wallet },
     { title: "Transações", href: "/transactions", icon: ArrowRightLeft },
     { title: "Metas", href: "/goals", icon: Target },
-    { title: "Cartões", href: "/cards", icon: CreditCard },
+    { title: "Cartões", href: "/installments", icon: CreditCard },
     { title: "Relatórios", href: "/reports", icon: BarChart3 },
     { title: "Orçamentos", href: "/budgets", icon: ChartPie },
   ];
