@@ -1,24 +1,103 @@
-"use client"
+"use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { TypeSchemas } from "./validate";
-import { Mail, Lock, ArrowRight } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import { FormWrapper } from "@/components/FormWrapper";
 import { FormInput } from "@/components/FormInput";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+
+const signInSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
+});
+
+type SignInFormData = z.infer<typeof signInSchema>;
 
 export const SignInForm = () => {
-  const methods = useForm<TypeSchemas>();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  const onSubmit = (data: TypeSchemas) => {
-    console.log(data);
+  const methods = useForm<SignInFormData>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const { errors } = methods.formState;
+
+  const onSubmit = async (data: SignInFormData) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const loginRes = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const loginData = await loginRes.json();
+
+      if (!loginRes.ok || !loginData.success) {
+        setError(loginData.message || "Email ou senha incorretos");
+        setIsLoading(false);
+        return;
+      }
+
+      localStorage.setItem("token", loginData.data.token);
+
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Erro ao fazer login. Tente novamente.");
+      } else {
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch {
+      setError("Erro ao fazer login. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      await signIn("google", { callbackUrl: "/dashboard" });
+    } catch {
+      setError("Erro ao fazer login com Google");
+      setIsLoading(false);
+    }
   };
 
   return (
     <FormWrapper methods={methods}>
       <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+        {error && (
+          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
         <FormInput
           name="email"
           label="Email"
@@ -26,6 +105,7 @@ export const SignInForm = () => {
           placeholder="seu@email.com"
           icon={<Mail className="w-5 h-5" />}
           register={methods.register}
+          error={errors.email}
         />
         <FormInput
           name="password"
@@ -35,28 +115,39 @@ export const SignInForm = () => {
           icon={<Lock className="w-5 h-5" />}
           register={methods.register}
           isPassword
+          error={errors.password}
         />
         <Link
-          href="/auth/signup"
-          className="text-blue-600 flex justify-end"
-          target="_blank"
+          href="/sign-in"
+          className="text-blue-600 flex justify-end hover:underline"
         >
           Esqueceu a senha?
         </Link>
         <Button
           type="submit"
-          className="w-full flex items-center justify-center cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 cursor-pointer"
+          disabled={isLoading}
         >
-          Entrar <ArrowRight />
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Entrando...
+            </>
+          ) : (
+            <>
+              Entrar
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
         </Button>
-        <p>
+        <p className="text-center text-sm text-muted-foreground">
           Ainda não tem conta?{" "}
-          <Link href="/auth/signup" className="text-blue-600">
+          <Link href="/sign-up" className="text-blue-600 hover:underline">
             Criar conta
           </Link>
         </p>
 
-        <div className="mt-8 relative">
+        <div className="mt-6 relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-border" />
           </div>
@@ -68,9 +159,11 @@ export const SignInForm = () => {
         </div>
 
         <Button
+          type="button"
           className="btn-secondary flex items-center justify-center gap-2 w-full cursor-pointer"
           variant="outline"
-          onClick={() => signIn("google", {callbackUrl: "/dashboard"})}
+          onClick={handleGoogleSignIn}
+          disabled={isLoading}
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -93,7 +186,7 @@ export const SignInForm = () => {
           Google
         </Button>
 
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-center text-xs text-muted-foreground">
           Ao continuar, você concorda com nossos Termos de Serviço e Política de
           Privacidade
         </p>
@@ -101,4 +194,3 @@ export const SignInForm = () => {
     </FormWrapper>
   );
 };
-

@@ -14,8 +14,10 @@ import {
 import {
   ArrowRightLeft,
   BarChart3,
+  CalendarRange,
   ChartPie,
   CreditCard,
+  Crown,
   LayoutDashboard,
   LogOut,
   Settings,
@@ -35,8 +37,10 @@ export const SideBarMenu = () => {
     { title: "Transações", href: "/transactions", icon: ArrowRightLeft },
     { title: "Metas", href: "/goals", icon: Target },
     { title: "Cartões", href: "/installments", icon: CreditCard },
-    { title: "Relatórios", href: "/reports", icon: BarChart3 },
+    { title: "Recorrências", href: "/recurrences", icon: CalendarRange },
     { title: "Orçamentos", href: "/budgets", icon: ChartPie },
+    { title: "Relatórios", href: "/reports", icon: BarChart3 },
+    { title: "Planos", href: "/plans", icon: Crown },
   ];
 
   const pathname = usePathname();

@@ -1,23 +1,89 @@
 "use client";
 
+import { useState } from "react";
 import { FormWrapper } from "@/components/FormWrapper";
 import { useForm } from "react-hook-form";
 import { FormInput } from "@/components/FormInput";
 import { Button } from "@/components/ui/button";
-import { Mail, Lock, ArrowRight, User } from "lucide-react";
+import { Mail, Lock, ArrowRight, User, Loader2 } from "lucide-react";
 import { TypeSchemas } from "./validate";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { schemas } from "./validate";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 export const SignUpForm = () => {
-  const methods = useForm<TypeSchemas>();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  const onSubmit = (data: TypeSchemas ) => {
-    console.log(data);
+  const methods = useForm<TypeSchemas>({
+    resolver: zodResolver(schemas),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  const { errors } = methods.formState;
+
+  const onSubmit = async (data: TypeSchemas) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const registerRes = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const registerData = await registerRes.json();
+
+      if (!registerRes.ok || !registerData.success) {
+        setError(registerData.message || "Erro ao criar conta");
+        setIsLoading(false);
+        return;
+      }
+
+      if (registerData.data?.token) {
+        localStorage.setItem("token", registerData.data.token);
+      }
+
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        router.push("/sign-in");
+      } else {
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch (err) {
+      setError("Erro ao se conectar com o servidor. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
   };
   return (
     <FormWrapper methods={methods}>
       <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+        {error && (
+          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
+            {error}
+          </div>
+        )}
         <FormInput
           name="name"
           label="Nome completo"
@@ -25,6 +91,7 @@ export const SignUpForm = () => {
           placeholder="Seu nome"
           icon={<User className="w-5 h-5" />}
           register={methods.register}
+          error={errors.name}
         />
         <FormInput
           name="email"
@@ -33,6 +100,7 @@ export const SignUpForm = () => {
           placeholder="seu@email.com"
           icon={<Mail className="w-5 h-5" />}
           register={methods.register}
+          error={errors.email}
         />
         <FormInput
           name="password"
@@ -42,23 +110,33 @@ export const SignUpForm = () => {
           icon={<Lock className="w-5 h-5" />}
           register={methods.register}
           isPassword
+          error={errors.password}
         />
         <Link
-          href="/auth/signup"
-          className="text-blue-600 flex justify-end"
-          target="_blank"
+          href="/sign-in"
+          className="text-blue-600 flex justify-end hover:underline"
         >
           Esqueceu a senha?
         </Link>
         <Button
           type="submit"
-          className="w-full flex items-center justify-center cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 cursor-pointer"
+          disabled={isLoading}
         >
-          Entrar <ArrowRight />
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Criando...
+            </>
+          ) : (
+            <>
+              Criar conta <ArrowRight className="w-4 h-4" />
+            </>
+          )}
         </Button>
-        <p>
+        <p className="text-center text-sm text-muted-foreground">
           Já possui uma conta?{" "}
-          <Link href="/auth/signin" className="text-blue-600">
+          <Link href="/sign-in" className="text-blue-600 hover:underline">
             Fazer login
           </Link>
         </p>
