@@ -271,7 +271,7 @@ const PlansPage = () => {
         >
           {!isPro && (
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-              <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm flex items-center gap-1">
+              <span className="bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
                 RECOMENDADO
               </span>

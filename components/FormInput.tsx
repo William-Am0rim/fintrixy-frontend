@@ -51,7 +51,7 @@ export const FormInput = ({
           type={isPassword ? typeToggle : type}
           placeholder={placeholder}
           {...registerProps}
-          className={`pl-10 ${isPassword ? "pr-10" : ""} ${error ? "border-red-500 focus:ring-red-500" : ""}`}
+          className={`pl-4 ${isPassword ? "pr-10" : ""} ${error ? "border-red-500 focus:ring-red-500" : ""}`}
         />
         {isPassword && (
           <button
