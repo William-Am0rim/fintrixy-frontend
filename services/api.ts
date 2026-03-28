@@ -49,6 +49,7 @@ export async function apiGet<T>(endpoint: string): Promise<ApiResponse<T>> {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "GET",
       headers,
+      credentials: "include",
       cache: "no-store",
     });
 
@@ -68,6 +69,7 @@ export async function apiPost<T, D = unknown>(
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
       headers,
+      credentials: "include",
       body: JSON.stringify(body),
     });
 
@@ -87,6 +89,7 @@ export async function apiPut<T, D = unknown>(
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "PUT",
       headers,
+      credentials: "include",
       body: JSON.stringify(body),
     });
 
@@ -103,6 +106,7 @@ export async function apiDelete(endpoint: string): Promise<ApiResponse<void>> {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "DELETE",
       headers,
+      credentials: "include",
     });
 
     if (!response.ok) {
