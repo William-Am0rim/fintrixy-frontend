@@ -48,6 +48,7 @@ export const SignInForm = () => {
           password: data.password,
         }),
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
       });
 
       const loginData = await loginRes.json();

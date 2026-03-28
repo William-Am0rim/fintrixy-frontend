@@ -44,6 +44,7 @@ export const SignUpForm = () => {
           password: data.password,
         }),
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
       });
 
       const registerData = await registerRes.json();
