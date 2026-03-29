@@ -352,10 +352,19 @@ const PlansPage = () => {
                 : Math.min((stat.current / stat.limit) * 100, 100);
               const isExceeded = !isUnlimited && stat.current >= stat.limit;
 
+              const keyLabels: Record<string, string> = {
+                wallets: "Carteiras",
+                transactions: "Transações",
+                recurrences: "Recorrências",
+                goals: "Metas",
+                installments: "Cartões",
+                budgets: "Orçamentos",
+              };
+
               return (
                 <div key={key} className="text-center">
                   <p className="text-xs text-muted-foreground capitalize mb-1">
-                    {key === "installments" ? "Cartões" : key}
+                    {keyLabels[key] || key}
                   </p>
                   <p
                     className={cn(
