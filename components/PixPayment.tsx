@@ -40,7 +40,7 @@ export const PixPayment = ({ amount, onSuccess, onClose }: PixPaymentProps) => {
 
       if (result.success && result.data) {
         console.log("Dados do pagamento:", result.data);
-        setPaymentUrl(result.data.url || "");
+        setPaymentUrl(result.data.brCode || result.data.url || "");
         setPaymentId(result.data.id || "");
       } else {
         setError(result.message || "Erro ao criar pagamento");
