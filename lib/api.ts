@@ -362,6 +362,13 @@ class ApiService {
     });
   }
 
+  async parsePixCode(pixCode: string) {
+    return this.request<any>("/payment/parse", {
+      method: "POST",
+      body: JSON.stringify({ pixCode }),
+    });
+  }
+
   async getDashboardStats() {
     const [wallets, transactions, goals, installments, recurrences] = await Promise.all([
       this.getWallets(),
