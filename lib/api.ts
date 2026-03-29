@@ -15,7 +15,37 @@ class ApiService {
     this.token = token;
   }
 
-  private async request<T>(
+  async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<ApiResponse<T>> {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      ...options.headers,
+    };
+
+    if (this.token) {
+      (headers as Record<string, string>)["Authorization"] = `Bearer ${this.token}`;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
+
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      console.error("API Error:", error);
+      return {
+        success: false,
+        message: "Erro de conexão com o servidor",
+      };
+    }
+  }
+
+  private async _request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
@@ -61,6 +91,20 @@ class ApiService {
 
   async getProfile() {
     return this.request<any>("/auth/profile");
+  }
+
+  async updateProfile(data: { name?: string; image?: string }) {
+    return this.request<any>("/auth/profile", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async changePassword(currentPassword: string, newPassword: string) {
+    return this.request<any>("/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
   }
 
   async getWallets() {

@@ -14,6 +14,7 @@ type FormInputProps = {
   icon?: React.ReactNode;
   isPassword?: boolean;
   error?: any;
+  disabled?: boolean;
 };
 
 export const FormInput = ({
@@ -25,6 +26,7 @@ export const FormInput = ({
   icon,
   isPassword,
   error,
+  disabled,
 }: FormInputProps) => {
   const [showPassword, setShowPassword] = useState(true);
   const [typeToggle, setTypeToggle] = useState("password");
@@ -51,6 +53,7 @@ export const FormInput = ({
           type={isPassword ? typeToggle : type}
           placeholder={placeholder}
           {...registerProps}
+          disabled={disabled}
           className={`${icon ? "pl-10" : "pl-4"} ${isPassword ? "pr-10" : ""} ${error ? "border-red-500 focus:ring-red-500" : ""}`}
         />
         {isPassword && (
