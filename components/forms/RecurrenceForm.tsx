@@ -66,7 +66,7 @@ export const RecurrenceForm = ({ toggleOpen, onSubmit, initialData }: Recurrence
   const methods = useForm<RecurrenceFormData>({
     defaultValues: initialData || {
       description: "",
-      value: 0,
+      value: undefined,
       type: "expense",
       frequency: "monthly",
       nextDate: new Date().toISOString().split("T")[0],

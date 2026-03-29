@@ -110,7 +110,7 @@ const RecurrencesPage = () => {
       api.setToken(localStorage.getItem("token"));
       const result = await api.createRecurrence({
         description: data.description,
-        value: data.value,
+        value: Number(data.value),
         type: data.type,
         frequency: data.frequency,
         nextDate: data.nextDate,
@@ -142,7 +142,7 @@ const RecurrencesPage = () => {
       api.setToken(localStorage.getItem("token"));
       const result = await api.updateRecurrence(editingRecurrence.id, {
         description: data.description,
-        value: data.value,
+        value: Number(data.value),
         type: data.type,
         frequency: data.frequency,
         nextDate: data.nextDate,
