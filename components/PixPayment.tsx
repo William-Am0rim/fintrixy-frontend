@@ -14,7 +14,8 @@ interface PixPaymentProps {
 export const PixPayment = ({ amount, onSuccess, onClose }: PixPaymentProps) => {
   const [loading, setLoading] = useState(true);
   const [paymentUrl, setPaymentUrl] = useState<string>("");
-  const [billingId, setBillingId] = useState<string>("");
+  const [paymentId, setPaymentId] = useState<string>("");
+  const [error, setError] = useState<string>("");
   const [copied, setCopied] = useState(false);
   const [checking, setChecking] = useState(false);
 
@@ -24,6 +25,7 @@ export const PixPayment = ({ amount, onSuccess, onClose }: PixPaymentProps) => {
 
   const createPayment = async () => {
     setLoading(true);
+    setError("");
     try {
       api.setToken(localStorage.getItem("token"));
       const result = await api.request<any>("/payment/create", {
@@ -34,13 +36,17 @@ export const PixPayment = ({ amount, onSuccess, onClose }: PixPaymentProps) => {
         }),
       });
 
+      console.log("Resposta do pagamento:", result);
+
       if (result.success && result.data) {
-        setPaymentUrl(result.data.url || "");
-        setBillingId(result.data.id || "");
+        setPaymentUrl(result.data.url || result.data.brCode || "");
+        setPaymentId(result.data.id || "");
       } else {
+        setError(result.message || "Erro ao criar pagamento");
         console.error("Erro ao criar pagamento:", result.message);
       }
     } catch (error) {
+      setError("Erro ao criar pagamento");
       console.error("Erro ao criar pagamento:", error);
     } finally {
       setLoading(false);
@@ -48,20 +54,20 @@ export const PixPayment = ({ amount, onSuccess, onClose }: PixPaymentProps) => {
   };
 
   const copyToClipboard = () => {
-    if (billingId) {
-      navigator.clipboard.writeText(billingId);
+    if (paymentId) {
+      navigator.clipboard.writeText(paymentId);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
   const checkPaymentStatus = async () => {
-    if (!billingId) return;
+    if (!paymentId) return;
     
     setChecking(true);
     try {
       api.setToken(localStorage.getItem("token"));
-      const result = await api.request<any>(`/payment/status/${billingId}`);
+      const result = await api.request<any>(`/payment/status/${paymentId}`);
       
       if (result.success && result.data) {
         const status = result.data.status;
@@ -103,6 +109,19 @@ export const PixPayment = ({ amount, onSuccess, onClose }: PixPaymentProps) => {
         </p>
       </div>
 
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <p className="text-sm text-red-600 dark:text-red-400 text-center">{error}</p>
+          <Button 
+            onClick={createPayment} 
+            variant="link" 
+            className="block mx-auto mt-2 cursor-pointer text-blue-500"
+          >
+            Tentar novamente
+          </Button>
+        </div>
+      )}
+
       <div className="bg-muted rounded-lg p-4 space-y-3">
         <p className="text-sm text-muted-foreground text-center">
           Para completar o pagamento, clique no botão abaixo para ser redirecionado à página de pagamento da AbacatePay.
@@ -118,14 +137,14 @@ export const PixPayment = ({ amount, onSuccess, onClose }: PixPaymentProps) => {
         </Button>
       </div>
 
-      {billingId && (
+      {paymentId && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground text-center">
             ID da transação (para verificação):
           </p>
           <div className="flex items-center gap-2">
             <code className="flex-1 bg-muted px-3 py-2 rounded text-xs overflow-x-auto">
-              {billingId}
+              {paymentId}
             </code>
             <Button 
               variant="outline" 
@@ -149,7 +168,7 @@ export const PixPayment = ({ amount, onSuccess, onClose }: PixPaymentProps) => {
         </Button>
         <Button 
           onClick={checkPaymentStatus}
-          disabled={checking || !billingId}
+          disabled={checking || !paymentId}
           className="flex-1 cursor-pointer"
         >
           {checking ? (
