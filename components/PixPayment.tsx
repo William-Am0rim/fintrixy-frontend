@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { QrCode, Copy, Check, Loader2, ExternalLink } from "lucide-react";
+import { QrCode, Copy, Check, Loader2, ExternalLink, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 interface PixPaymentProps {
   amount: number;
@@ -12,6 +12,7 @@ interface PixPaymentProps {
 }
 
 export const PixPayment = ({ amount, onSuccess, onClose }: PixPaymentProps) => {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [paymentUrl, setPaymentUrl] = useState<string>("");
   const [paymentId, setPaymentId] = useState<string>("");
@@ -27,24 +28,25 @@ export const PixPayment = ({ amount, onSuccess, onClose }: PixPaymentProps) => {
     setLoading(true);
     setError("");
     try {
-      api.setToken(localStorage.getItem("token"));
-      const result = await api.request<any>("/payment/create", {
+      const response = await fetch("/api/payment/create", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount,
           plan: "pro",
         }),
       });
 
+      const result = await response.json();
       console.log("Resposta do pagamento:", result);
 
       if (result.success && result.data) {
         console.log("Dados do pagamento:", result.data);
-        setPaymentUrl(result.data.brCode || result.data.url || "");
+        setPaymentUrl(result.data.url || result.data.brCode || "");
         setPaymentId(result.data.id || "");
       } else {
-        setError(result.message || "Erro ao criar pagamento");
-        console.error("Erro ao criar pagamento:", result.message);
+        setError(result.error || "Erro ao criar pagamento");
+        console.error("Erro ao criar pagamento:", result.error);
       }
     } catch (error) {
       setError("Erro ao criar pagamento");
@@ -67,12 +69,12 @@ export const PixPayment = ({ amount, onSuccess, onClose }: PixPaymentProps) => {
     
     setChecking(true);
     try {
-      api.setToken(localStorage.getItem("token"));
-      const result = await api.request<any>(`/payment/status/${paymentId}`);
+      const response = await fetch(`/api/payment/status/${paymentId}`);
+      const result = await response.json();
       
       if (result.success && result.data) {
         const status = result.data.status;
-        if (status === "PAID" || status === "COMPLETED") {
+        if (status === "PAID" || status === "COMPLETED" || status === "approved") {
           onSuccess?.();
         } else {
           alert("Pagamento ainda não confirmado. Aguarde alguns segundos e tente novamente.");
@@ -136,6 +138,17 @@ export const PixPayment = ({ amount, onSuccess, onClose }: PixPaymentProps) => {
           <ExternalLink className="w-4 h-4 mr-2" />
           Ir para página de pagamento
         </Button>
+
+        {paymentId && (
+          <Button 
+            variant="outline"
+            onClick={() => router.push(`/payment/success?session_id=${paymentId}`)}
+            className="w-full cursor-pointer"
+          >
+            Ver status do pagamento
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        )}
       </div>
 
       {paymentId && (
