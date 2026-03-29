@@ -1,0 +1,167 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { QrCode, Copy, Check, Loader2, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
+
+interface PixPaymentProps {
+  amount: number;
+  onSuccess?: () => void;
+  onClose?: () => void;
+}
+
+export const PixPayment = ({ amount, onSuccess, onClose }: PixPaymentProps) => {
+  const [loading, setLoading] = useState(true);
+  const [paymentUrl, setPaymentUrl] = useState<string>("");
+  const [billingId, setBillingId] = useState<string>("");
+  const [copied, setCopied] = useState(false);
+  const [checking, setChecking] = useState(false);
+
+  useEffect(() => {
+    createPayment();
+  }, []);
+
+  const createPayment = async () => {
+    setLoading(true);
+    try {
+      api.setToken(localStorage.getItem("token"));
+      const result = await api.request<any>("/payment/create", {
+        method: "POST",
+        body: JSON.stringify({
+          amount,
+          plan: "pro",
+        }),
+      });
+
+      if (result.success && result.data) {
+        setPaymentUrl(result.data.url || "");
+        setBillingId(result.data.id || "");
+      } else {
+        console.error("Erro ao criar pagamento:", result.message);
+      }
+    } catch (error) {
+      console.error("Erro ao criar pagamento:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (billingId) {
+      navigator.clipboard.writeText(billingId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const checkPaymentStatus = async () => {
+    if (!billingId) return;
+    
+    setChecking(true);
+    try {
+      api.setToken(localStorage.getItem("token"));
+      const result = await api.request<any>(`/payment/status/${billingId}`);
+      
+      if (result.success && result.data) {
+        const status = result.data.status;
+        if (status === "PAID" || status === "COMPLETED") {
+          onSuccess?.();
+        } else {
+          alert("Pagamento ainda não confirmado. Aguarde alguns segundos e tente novamente.");
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao verificar pagamento:", error);
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const openPaymentPage = () => {
+    if (paymentUrl) {
+      window.open(paymentUrl, "_blank");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8 gap-4">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-muted-foreground">Gerando pagamento PIX...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center space-y-2">
+        <QrCode className="w-16 h-16 mx-auto text-primary" />
+        <h3 className="text-lg font-semibold">Pagamento via PIX</h3>
+        <p className="text-2xl font-bold text-primary">
+          R$ {amount.toFixed(2).replace(".", ",")}
+        </p>
+      </div>
+
+      <div className="bg-muted rounded-lg p-4 space-y-3">
+        <p className="text-sm text-muted-foreground text-center">
+          Para completar o pagamento, clique no botão abaixo para ser redirecionado à página de pagamento da AbacatePay.
+        </p>
+
+        <Button 
+          onClick={openPaymentPage}
+          className="w-full cursor-pointer"
+          disabled={!paymentUrl}
+        >
+          <ExternalLink className="w-4 h-4 mr-2" />
+          Ir para página de pagamento
+        </Button>
+      </div>
+
+      {billingId && (
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground text-center">
+            ID da transação (para verificação):
+          </p>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 bg-muted px-3 py-2 rounded text-xs overflow-x-auto">
+              {billingId}
+            </code>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={copyToClipboard}
+              className="cursor-pointer shrink-0"
+            >
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex gap-2 pt-2">
+        <Button 
+          variant="outline" 
+          onClick={onClose}
+          className="flex-1 cursor-pointer"
+        >
+          Cancelar
+        </Button>
+        <Button 
+          onClick={checkPaymentStatus}
+          disabled={checking || !billingId}
+          className="flex-1 cursor-pointer"
+        >
+          {checking ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Verificando...
+            </>
+          ) : (
+            "Confirmar Pagamento"
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+};

@@ -18,6 +18,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { PixPayment } from "@/components/PixPayment";
 import { api } from "@/lib/api";
 
 interface SubscriptionStats {
@@ -77,6 +78,7 @@ const PlansPage = () => {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [errorDialog, setErrorDialog] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -104,21 +106,14 @@ const PlansPage = () => {
     loadSubscription();
   }, [loadSubscription]);
 
-  const handleUpgrade = async () => {
-    setProcessing(true);
-    try {
-      const res = await api.upgradeToPro({ paymentMethod: "pix" });
-      if (res.success) {
-        setShowSuccessDialog(true);
-        loadSubscription();
-      } else {
-        setErrorDialog(res.error || "Erro ao processar assinatura");
-      }
-    } catch (error) {
-      setErrorDialog("Erro ao processar assinatura");
-    } finally {
-      setProcessing(false);
-    }
+  const handleUpgrade = () => {
+    setShowPaymentDialog(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentDialog(false);
+    setShowSuccessDialog(true);
+    loadSubscription();
   };
 
   const handleDowngrade = async () => {
@@ -394,6 +389,23 @@ const PlansPage = () => {
             })}
         </div>
       </div>
+
+      {/* Payment Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Assinatura Plano Pro</DialogTitle>
+            <DialogDescription>
+              Faça o pagamento via PIX para ativar seu plano Pro
+            </DialogDescription>
+          </DialogHeader>
+          <PixPayment 
+            amount={10} 
+            onSuccess={handlePaymentSuccess}
+            onClose={() => setShowPaymentDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
